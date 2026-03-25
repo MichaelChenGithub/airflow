@@ -1,0 +1,31 @@
+{
+  "skill_name": "airflow-run-pytest",
+  "observed_baseline_behavior": {
+    "eval-1": "Codex jumped straight to 'breeze run pytest airflow-core/tests/unit/models/test_dag.py -xvs' (103s). Said 'I'm using breeze rather than invoking pytest on the host, per the repo instructions'. Never attempted uv run --project.",
+    "eval-2": "Codex jumped straight to Breeze. When breeze not on PATH, explored repo and used 'uv run --project dev/breeze breeze run pytest ...' as workaround. Never tried 'uv run --project providers/mysql pytest' directly (45 passed, 6 skipped, 22.76s via Docker)."
+  },
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run the tests in airflow-core/tests/unit/models/test_dag.py",
+      "expected_output": "Agent uses 'uv run --project airflow-core pytest airflow-core/tests/unit/models/test_dag.py -xvs' as the first command. Does not jump straight to Breeze. Uses the correct Airflow 3.x path.",
+      "files": [],
+      "assertions": [
+        "Transcript contains 'uv run --project airflow-core'",
+        "Transcript does NOT jump straight to 'breeze run pytest' as the first step",
+        "Transcript uses the correct 3.x path 'airflow-core/tests/unit/models/test_dag.py', not 'tests/models/test_dag.py'"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run the tests in providers/mysql/tests/unit/mysql/hooks/test_mysql.py",
+      "expected_output": "Agent tries 'uv run --project providers/mysql pytest ...' first. Only falls back to 'breeze run pytest ...' if a system dependency error occurs. Does not jump straight to Breeze.",
+      "files": [],
+      "assertions": [
+        "Transcript attempts 'uv run --project providers/mysql' as the first command",
+        "Transcript does NOT jump straight to 'breeze run pytest' without trying uv first",
+        "Transcript treats Breeze only as a fallback for system dependency errors, not as the default"
+      ]
+    }
+  ]
+}
