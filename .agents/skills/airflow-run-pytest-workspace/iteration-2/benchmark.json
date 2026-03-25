@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "skill_name": "airflow-run-pytest",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-03-25T15:58:29Z",
+    "evals_run": [
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 36.1,
+        "tokens": 14491,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript attempts 'uv run --project providers/mysql' as the first command",
+          "passed": true,
+          "evidence": "Transcript: 'uv run --project providers/mysql pytest providers/mysql/tests/unit/mysql/hooks/test_mysql.py -xvs' as first command, citing the skill."
+        },
+        {
+          "text": "Transcript does NOT jump straight to 'breeze run pytest' without trying uv first",
+          "passed": true,
+          "evidence": "Breeze not attempted as first step. Explicitly held in reserve as fallback only."
+        },
+        {
+          "text": "Transcript treats Breeze only as a fallback for system dependency errors, not as the default",
+          "passed": true,
+          "evidence": "Agent stated Breeze fallback only applies 'if uv run exits with a missing system dependency error' (e.g. mysqlclient, pkg-config)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 36.8,
+        "tokens": 14507,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript contains 'uv run --project airflow-core'",
+          "passed": true,
+          "evidence": "Transcript: 'uv run --project airflow-core pytest airflow-core/tests/unit/models/test_dag.py -xvs'"
+        },
+        {
+          "text": "Transcript does NOT jump straight to 'breeze run pytest' as the first step",
+          "passed": true,
+          "evidence": "uv was chosen as first command. Breeze mentioned only as fallback after a system dependency error."
+        },
+        {
+          "text": "Transcript uses the correct 3.x path 'airflow-core/tests/unit/models/test_dag.py', not 'tests/models/test_dag.py'",
+          "passed": true,
+          "evidence": "Correct 3.x path used. Skill explicitly warned against old 2.x path."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 58.3,
+        "tokens": 17659,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript attempts 'uv run --project providers/mysql' as the first command",
+          "passed": false,
+          "evidence": "Agent went straight to 'breeze testing providers-tests -- providers/mysql/tests/...' as first command. No uv attempt at all."
+        },
+        {
+          "text": "Transcript does NOT jump straight to 'breeze run pytest' without trying uv first",
+          "passed": false,
+          "evidence": "Agent jumped straight to Breeze (via 'breeze testing providers-tests') without attempting uv. CLAUDE.md only showed breeze commands for providers, so agent treated Breeze as the default."
+        },
+        {
+          "text": "Transcript treats Breeze only as a fallback for system dependency errors, not as the default",
+          "passed": false,
+          "evidence": "Agent explicitly stated 'Breeze is the standard recommended tool for provider tests' and used it as the default, not a fallback."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 58.3,
+        "tokens": 21232,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript contains 'uv run --project airflow-core'",
+          "passed": false,
+          "evidence": "Agent used bare 'uv run pytest airflow-core/tests/unit/models/test_dag.py' without '--project airflow-core'. CLAUDE.md only shows 'uv run --project' for Python scripts, not pytest \u2014 agent did not infer the correct pytest invocation pattern."
+        },
+        {
+          "text": "Transcript does NOT jump straight to 'breeze run pytest' as the first step",
+          "passed": true,
+          "evidence": "Agent chose uv over Breeze. Correctly reasoned that Breeze is for full suite runs and uv is lighter for a single file."
+        },
+        {
+          "text": "Transcript uses the correct 3.x path 'airflow-core/tests/unit/models/test_dag.py', not 'tests/models/test_dag.py'",
+          "passed": true,
+          "evidence": "Correct 3.x path used. Agent verified file existence and used the correct structure."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 36.45,
+        "stddev": 0.495,
+        "min": 36.1,
+        "max": 36.8
+      },
+      "tokens": {
+        "mean": 14499.0,
+        "stddev": 11.3137,
+        "min": 14491,
+        "max": 14507
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.3333,
+        "stddev": 0.4714,
+        "min": 0.0,
+        "max": 0.6667
+      },
+      "time_seconds": {
+        "mean": 58.3,
+        "stddev": 0.0,
+        "min": 58.3,
+        "max": 58.3
+      },
+      "tokens": {
+        "mean": 19445.5,
+        "stddev": 2526.4925,
+        "min": 17659,
+        "max": 21232
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.67",
+      "time_seconds": "-21.8",
+      "tokens": "-4946"
+    }
+  },
+  "notes": [
+    "Pass rate delta is +0.67 — with_skill scored 1.0 (6/6 assertions), without_skill scored 0.33 (2/6 assertions). This is the real delta after stripping pytest guidance from CLAUDE.md (iteration 1 delta was 0 because CLAUDE.md still had the uv-first pattern).",
+    "Eval 1 without_skill partial pass (2/3): Agent correctly avoided Breeze and used the right 3.x path, but used bare 'uv run pytest' instead of 'uv run --project airflow-core pytest'. CLAUDE.md only shows 'uv run --project' for Python scripts, not pytest — the --project flag is the key gap the skill fills.",
+    "Eval 2 without_skill full fail (0/3): Agent jumped straight to 'breeze testing providers-tests' for the MySQL provider, reasoning that MySQL needs native C libs and CLAUDE.md only shows Breeze for providers. This is exactly the observed Codex failure mode. The skill's explicit uv-first instruction and Breeze-as-fallback framing is necessary.",
+    "Speed: with_skill runs were 21.8s faster (36.5s vs 58.3s) and used ~5000 fewer tokens — agents resolved approach immediately from the skill without exploring CLAUDE.md and pyproject.toml.",
+    "Discriminating assertion: 'Transcript contains uv run --project airflow-core' (eval 1, assertion 1) is the highest-signal assertion — it fails without the skill and passes with it. The path assertions pass in both configs."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "eval_id": 1,
+  "eval_name": "uv-first-core-test",
+  "config": "with_skill",
+  "expectations": [
+    {
+      "text": "Transcript contains 'uv run --project airflow-core'",
+      "passed": true,
+      "evidence": "Transcript: 'uv run --project airflow-core pytest airflow-core/tests/unit/models/test_dag.py -xvs'"
+    },
+    {
+      "text": "Transcript does NOT jump straight to 'breeze run pytest' as the first step",
+      "passed": true,
+      "evidence": "uv was chosen as first command. Breeze mentioned only as fallback after a system dependency error."
+    },
+    {
+      "text": "Transcript uses the correct 3.x path 'airflow-core/tests/unit/models/test_dag.py', not 'tests/models/test_dag.py'",
+      "passed": true,
+      "evidence": "Correct 3.x path used. Skill explicitly warned against old 2.x path."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  }
+}

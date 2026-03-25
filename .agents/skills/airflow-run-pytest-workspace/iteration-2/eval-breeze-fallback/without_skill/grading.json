@@ -1,0 +1,23 @@
+{
+  "eval_id": 2,
+  "eval_name": "breeze-fallback-provider-test",
+  "config": "without_skill",
+  "expectations": [
+    {
+      "text": "Transcript attempts 'uv run --project providers/mysql' as the first command",
+      "passed": false,
+      "evidence": "Agent went straight to 'breeze testing providers-tests -- providers/mysql/tests/...' as the first command. No uv attempt."
+    },
+    {
+      "text": "Transcript does NOT jump straight to 'breeze run pytest' without trying uv first",
+      "passed": false,
+      "evidence": "Agent jumped straight to Breeze (via 'breeze testing providers-tests') without attempting uv first. CLAUDE.md only showed breeze commands for providers, so agent treated Breeze as the default."
+    },
+    {
+      "text": "Transcript treats Breeze only as a fallback for system dependency errors, not as the default",
+      "passed": false,
+      "evidence": "Agent explicitly stated 'Breeze is the standard recommended tool for provider tests' and used it as the default, not as a fallback."
+    }
+  ],
+  "pass_rate": 0.0
+}
