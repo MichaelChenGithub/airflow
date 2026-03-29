@@ -1,66 +1,74 @@
 ---
 name: airflow-run-pytest
-description: Run pytest for Apache Airflow tests. Use this skill whenever you need to run, execute, or trigger tests, pytest, or test files in the Airflow repository. Handles the correct uv-first execution pattern with Breeze as fallback for system dependency errors. Also use when deciding which command to use for running tests, or when choosing between uv and Breeze for test execution. Always use this skill in the Airflow repo — don't rely on generic pytest knowledge.
+description: Run pytest for Apache Airflow tests. Use this skill whenever you need to run, execute, or trigger tests, pytest, or test files in the Airflow repository. Always attempt uv first, then fall back to Breeze only when system dependencies are missing.
 compatibility: Requires uv installed on host. Breeze (Docker) required only as fallback.
 ---
 
-## How to run Airflow tests
+.. code:: bash
 
-Airflow is a uv workspace monorepo. Always try uv first — it runs on the host, needs no Docker,
-and is 10x faster than Breeze.
+    uv run pytest
 
-```bash
-uv run --project <PROJECT> pytest <path> -xvs
-```
+Non-DB tests are run once for each tested Python version with the ``none`` database backend (which
+causes any database access to fail). These tests are run with the ``pytest-xdist`` plugin in parallel, which
+means we can efficiently utilize multi-processor machines (including ``self-hosted`` runners with
+8 CPUs, where we run tests with maximum parallelism).
 
-`<PROJECT>` is the folder containing `pyproject.toml` for the package you want to test:
+It is usually straightforward to run these tests in a local virtualenv because they do not require any
+database setup. They also run much faster than DB tests. You can run them with the ``pytest`` command
+or with ``breeze`` (which has all dependencies automatically installed). You can also select specific tests, folders, or modules for Pytest to collect/run.
+The example below shows how to run all tests, parallelizing them with ``pytest-xdist`` (by specifying the ``tests`` folder):
 
-| What you're testing | `<PROJECT>` |
-|---|---|
-| Core Airflow | `airflow-core` |
-| A provider | `providers/<name>` (e.g. `providers/amazon`, `providers/mysql`) |
-| Task SDK | `task-sdk` |
+.. code-block:: bash
 
-### Examples
+    pytest airflow-core/tests --skip-db-tests -n auto
 
-```bash
-# Core test
-uv run --project airflow-core pytest airflow-core/tests/unit/models/test_dag.py -xvs
+The ``--skip-db-tests`` flag will only run tests that are not marked as DB tests.
 
-# Provider test
-uv run --project providers/mysql pytest providers/mysql/tests/unit/mysql/hooks/test_mysql.py -xvs
-```
+You can also use the ``breeze`` command to run all the tests (they will run in a separate container,
+with the selected Python version and without access to any database). Adding the ``--use-xdist`` flag will run all
+tests in parallel using the ``pytest-xdist`` plugin.
 
-## Airflow 3.x test paths
+You can run parallel commands via ``breeze testing core-tests`` or ``breeze testing providers-tests``
+by adding the parallel flags:
 
-Test paths changed in Airflow 3.x. Always use the new structure:
+.. code-block:: bash
 
-- **Core:** `airflow-core/tests/unit/<subfolder>/test_<name>.py`
-- **Provider:** `providers/<name>/tests/unit/<subfolder>/test_<name>.py`
+    breeze testing core-tests --skip-db-tests --backend none --use-xdist
 
-Old Airflow 2.x paths like `tests/models/test_dag.py` no longer exist — don't use them.
+You can pass a list of test types to execute via ``--parallel-test-type`` or exclude them via ``--exclude-parallel-test-types``:
 
-## When uv fails: fall back to Breeze
+.. code-block:: bash
 
-If `uv run` fails with a missing system dependency error (e.g. `mysqlclient`, `pkg-config`,
-`libxml`), fall back to:
+    breeze testing providers-tests --run-in-parallel --skip-db-tests --backend none --parallel-test-types "Providers[google] Providers[amazon]"
 
-```bash
-breeze run pytest <path> -xvs
-```
+.. code-block:: bash
 
-`breeze run` starts a fresh Docker container with all system deps pre-installed, runs the command,
-and cleans up automatically. Pass the same host-relative path — Breeze maps it internally.
+    pytest airflow-core/tests --run-db-tests-only
 
-**Always try `uv run --project` first.** Only reach for `breeze run` after a system dependency
-error — not as a default, not because it "feels safer".
+You can also run DB tests within the ``breeze`` dockerized environment. You can choose the backend with the
+``--backend`` flag. The default is ``sqlite``, but you can also use ``postgres`` or ``mysql``.
+You can also select the backend version and Python version. Breeze will list the available test types via ``--help`` and provide auto-complete.
+The example below runs ``Core`` tests with the ``postgres`` backend and Python ``3.10``:
 
-## Breeze command reference
+You can also run the commands via ``breeze testing core-tests`` or ``breeze testing providers-tests``
+by adding the parallel flags manually:
 
-| Command | Use for |
-|---|---|
-| `breeze run pytest <path>` | Fallback test execution — non-interactive, exits when done |
-| `breeze shell` | Interactive debugging inside the container |
-| `breeze exec` | Exec into an already-running Breeze container |
+.. code-block:: bash
 
-Do not use `breeze shell` to run tests — it starts an unnecessary interactive session.
+    breeze testing core-tests --run-db-tests-only --backend postgres --run-in-parallel
+
+You can pass a list of test types to execute via ``--parallel-test-type`` or exclude them via ``--exclude-parallel-test-types``:
+
+.. code-block:: bash
+
+    breeze testing providers-tests --run-in-parallel --run-db-tests-only --parallel-test-types "Providers[google] Providers[amazon]"
+
+.. code-block:: bash
+
+    breeze testing core-tests --db-reset
+
+You can run the whole providers test suite without adding the test target:
+
+.. code-block:: bash
+
+    breeze testing providers-tests --db-reset

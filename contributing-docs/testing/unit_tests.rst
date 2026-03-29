@@ -177,6 +177,8 @@ between these two types.
 Airflow non-DB tests
 ....................
 
+.. SKILL-FRAGMENT-START:: airflow-run-pytest
+
 Non-DB tests are run once for each tested Python version with the ``none`` database backend (which
 causes any database access to fail). These tests are run with the ``pytest-xdist`` plugin in parallel, which
 means we can efficiently utilize multi-processor machines (including ``self-hosted`` runners with
@@ -210,6 +212,10 @@ You can pass a list of test types to execute via ``--parallel-test-type`` or exc
 
     breeze testing providers-tests --run-in-parallel --skip-db-tests --backend none --parallel-test-types "Providers[google] Providers[amazon]"
 
+.. SKILL-FRAGMENT-END
+
+.. SKILL-FRAGMENT-START:: airflow-run-pytest ref=non-db-shell
+
 Additionally, you can enter an interactive shell with ``breeze`` and run tests from there to iterate. Source files in ``breeze`` are mounted as volumes, so you can modify them locally and
 rerun in Breeze as needed (``-n auto`` will parallelize tests using the ``pytest-xdist`` plugin):
 
@@ -217,6 +223,8 @@ rerun in Breeze as needed (``-n auto`` will parallelize tests using the ``pytest
 
     breeze shell --backend none --python 3.10
     > pytest airflow-core/tests --skip-db-tests -n auto
+
+.. SKILL-FRAGMENT-END
 
 Airflow DB tests
 ................
@@ -243,6 +251,8 @@ It is perfectly fine to run "non-DB" tests when you have a database configured. 
 DB tests (as done in our CI for ``Database`` runs), you can use the ``--run-db-tests-only`` flag to filter
 out non-DB tests. (You can specify the whole ``tests`` directory or any specific folder/file selection).
 
+.. SKILL-FRAGMENT-START:: airflow-run-pytest
+
 .. code-block:: bash
 
     pytest airflow-core/tests --run-db-tests-only
@@ -265,6 +275,10 @@ You can pass a list of test types to execute via ``--parallel-test-type`` or exc
 
     breeze testing providers-tests --run-in-parallel --run-db-tests-only --parallel-test-types "Providers[google] Providers[amazon]"
 
+.. SKILL-FRAGMENT-END
+
+.. SKILL-FRAGMENT-START:: airflow-run-pytest ref=db-shell
+
 If you want to iterate on tests, you can enter the interactive shell and run tests iteratively—either by package/module/test or by test type, whatever ``pytest`` supports.
 
 .. code-block:: bash
@@ -277,6 +291,8 @@ As explained before, you cannot run DB tests in parallel using the ``pytest-xdis
 .. code-block:: bash
 
     breeze testing core-tests --run-db-tests-only --backend postgres --python 3.10 --run-in-parallel
+
+.. SKILL-FRAGMENT-END
 
 Examples of marking test as DB test
 ...................................
@@ -878,6 +894,8 @@ will ask you to rebuild the image if needed.
 
 You can run the whole core test suite without adding the test target:
 
+.. SKILL-FRAGMENT-START:: airflow-run-pytest
+
 .. code-block:: bash
 
     breeze testing core-tests --db-reset
@@ -887,6 +905,8 @@ You can run the whole providers test suite without adding the test target:
 .. code-block:: bash
 
     breeze testing providers-tests --db-reset
+
+.. SKILL-FRAGMENT-END
 
 You can also specify individual tests or a group of tests:
 
