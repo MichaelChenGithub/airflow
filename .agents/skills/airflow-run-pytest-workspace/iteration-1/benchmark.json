@@ -1,0 +1,177 @@
+{
+  "metadata": {
+    "skill_name": "airflow-run-pytest",
+    "skill_path": "/Users/michael/Projects/airflow/.agents/skills/airflow-run-pytest",
+    "executor_model": "claude-sonnet-4-6",
+    "timestamp": "2026-03-29T00:00:00Z",
+    "evals_run": [1, 2],
+    "runs_per_configuration": 1,
+    "notes": "Bash was denied in subagents; all transcripts are planned-execution only, not real test runs. Baseline agents read CLAUDE.md which references the skill — partial contamination."
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "uv-first-for-core-tests",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 24.1,
+        "tokens": 13296,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript contains 'uv run --project airflow-core'",
+          "passed": true,
+          "evidence": "Step 1 command: 'uv run --project airflow-core pytest airflow-core/tests/unit/models/test_dag.py'"
+        },
+        {
+          "text": "Transcript does NOT jump straight to 'breeze run pytest' as the first step",
+          "passed": true,
+          "evidence": "First step is uv; breeze appears only as conditional fallback in Step 2"
+        },
+        {
+          "text": "Transcript uses the correct 3.x path 'airflow-core/tests/unit/models/test_dag.py', not 'tests/models/test_dag.py'",
+          "passed": true,
+          "evidence": "Path 'airflow-core/tests/unit/models/test_dag.py' used consistently"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "uv-first-for-core-tests",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 50.0,
+        "tokens": 16209,
+        "tool_calls": 13,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript contains 'uv run --project airflow-core'",
+          "passed": false,
+          "evidence": "No uv command used. Agent detected pytestmark=db_test and went directly to breeze testing core-tests"
+        },
+        {
+          "text": "Transcript does NOT jump straight to 'breeze run pytest' as the first step",
+          "passed": true,
+          "evidence": "First steps were ls and grep to inspect the file; breeze appears at Step 5"
+        },
+        {
+          "text": "Transcript uses the correct 3.x path 'airflow-core/tests/unit/models/test_dag.py', not 'tests/models/test_dag.py'",
+          "passed": true,
+          "evidence": "Correct path used throughout"
+        }
+      ],
+      "notes": [
+        "Agent correctly discovered all tests are db_test — uv would fail here without a database. Skill's 'uv first' guidance is incomplete for DB tests."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "uv-first-for-provider-tests",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 19.6,
+        "tokens": 13570,
+        "tool_calls": 13,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript attempts 'uv run --project providers/mysql' as the first command",
+          "passed": true,
+          "evidence": "Step 1: 'uv run --project providers/mysql pytest providers/mysql/tests/unit/mysql/hooks/test_mysql.py -v'"
+        },
+        {
+          "text": "Transcript does NOT jump straight to 'breeze run pytest' without trying uv first",
+          "passed": true,
+          "evidence": "First command is uv; breeze appears only in Step 2 as explicit fallback"
+        },
+        {
+          "text": "Transcript treats Breeze only as a fallback for system dependency errors, not as the default",
+          "passed": true,
+          "evidence": "Transcript: 'Only if Step 1 produces a system-dependency error would we fall back to Breeze'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "uv-first-for-provider-tests",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 63.0,
+        "tokens": 21063,
+        "tool_calls": 20,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript attempts 'uv run --project providers/mysql' as the first command",
+          "passed": false,
+          "evidence": "First test command was 'breeze testing providers-tests --test-type Providers[mysql]' at Step 5"
+        },
+        {
+          "text": "Transcript does NOT jump straight to 'breeze run pytest' without trying uv first",
+          "passed": false,
+          "evidence": "Steps 5-6 used breeze; uv was not tried until Step 7 after breeze failed"
+        },
+        {
+          "text": "Transcript treats Breeze only as a fallback for system dependency errors, not as the default",
+          "passed": false,
+          "evidence": "Agent cited CLAUDE.md as justification for using breeze by default for provider tests"
+        }
+      ],
+      "notes": [
+        "Agent read CLAUDE.md which says 'breeze testing for provider tests' — without the skill, CLAUDE.md wins."
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 21.85, "stddev": 2.25, "min": 19.6, "max": 24.1},
+      "tokens": {"mean": 13433, "stddev": 137, "min": 13296, "max": 13570}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.333, "stddev": 0.333, "min": 0.0, "max": 0.667},
+      "time_seconds": {"mean": 56.5, "stddev": 6.5, "min": 50.0, "max": 63.0},
+      "tokens": {"mean": 18636, "stddev": 2427, "min": 16209, "max": 21063}
+    },
+    "delta": {
+      "pass_rate": "+0.667",
+      "time_seconds": "-34.65",
+      "tokens": "-5203"
+    }
+  },
+  "notes": [
+    "Assertion 2 in eval 1 is weak: 'does NOT jump straight to breeze' passed for the baseline because its first step was ls/grep inspection, not breeze itself. Should be reworded to 'first test-running command is NOT breeze'.",
+    "Eval 1 tests are ALL db_test (pytestmark = pytest.mark.db_test at module level). Running with plain uv would yield 0 tests or failures without a database. The skill's uv-first guidance does not account for this — it needs a 'check for db_test marks first' instruction.",
+    "CLAUDE.md contamination: baseline agents can read CLAUDE.md which references the airflow-run-pytest skill and its uv-first recommendation. The baseline is not fully skill-naive, yet still defaulted to breeze — confirming the skill adds value.",
+    "All transcripts are planned execution only — Bash was denied in subagents. Pass rates may be inflated vs. real execution where uv would actually fail on the DB tests in eval 1.",
+    "Skill adds clear value for provider tests (eval 2): 3/3 vs 0/3 with strong evidence. Core tests (eval 1) is more nuanced due to db_test reality."
+  ]
+}

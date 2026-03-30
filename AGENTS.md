@@ -7,18 +7,12 @@
 
 - Install prek: `uv tool install prek`
 - Enable commit hooks: `prek install`
-- **Never run pytest, python, or airflow commands directly on the host** — always use `breeze`.
 - Place temporary scripts in `dev/` (mounted as `/opt/airflow/dev/` inside Breeze).
 
 ## Commands
 
-`<PROJECT>` is folder where pyproject.toml of the package you want to test is located. For example, `airflow-core` or `providers/amazon`.
 `<target_branch>` is the branch the PR will be merged into — usually `main`, but could be `v3-1-test` when creating a PR for the 3.1 branch.
 
-- **Run a single test:** `uv run --project <PROJECT> pytest path/to/test.py::TestClass::test_method -xvs`
-- **Run a test file:** `uv run --project <PROJECT> pytest path/to/test.py -xvs`
-- **Run all tests in package:** `uv run --project <PROJECT> pytest path/to/package -xvs`
-- **If uv tests fail with missing system dependencies, run the tests with breeze**: `breeze run pytest <tests> -xvs`
 - **Run a Python script:** `uv run --project <PROJECT> python dev/my_script.py`
 - **Run core or provider tests suite in parallel:** `breeze testing <test_group> --run-in-parallel` (test groups: `core-tests`, `providers-tests`)
 - **Run core or provider db tests suite in parallel:** `breeze testing <test_group> --run-db-tests-only --run-in-parallel` (test groups: `core-tests`, `providers-tests`)
@@ -28,7 +22,6 @@
 - **Run Helm tests with specific K8s version:** `breeze testing helm-tests --use-xdist --kubernetes-version 1.35.0`
 - **Run specific Helm test type:** `breeze testing helm-tests --use-xdist --test-type <type>` (types: `airflow_aux`, `airflow_core`, `apiserver`, `dagprocessor`, `other`, `redis`, `security`, `statsd`, `webserver`)
 - **Run other suites of tests** `breeze testing <test_group>` (test groups: `airflow-ctl-tests`, `docker-compose-tests`, `task-sdk-tests`)
-- **Run scripts tests:** `uv run --project scripts pytest scripts/tests/ -xvs`
 - **Run Airflow CLI:** `breeze run airflow dags list`
 - **Type-check:** `breeze run mypy path/to/code`
 - **Lint with ruff only:** `prek run ruff --from-ref <target_branch>`
@@ -60,7 +53,7 @@ UV workspace monorepo. Key paths:
 - `dev/` — development utilities and scripts used to bootstrap the environment, releases, breeze dev env
 - `scripts/` — utility scripts for CI, Docker, and prek hooks (workspace distribution `apache-airflow-scripts`)
   - `ci/prek/` — prek (pre-commit) hook scripts; shared utilities in `common_prek_utils.py`
-  - `tests/` — pytest tests for the scripts; run with `uv run --project scripts pytest scripts/tests/`
+  - `tests/` — pytest tests for the scripts
 
 
 ## Architecture Boundaries

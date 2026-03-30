@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Transcript contains 'uv run --project airflow-core'",
+      "passed": true,
+      "evidence": "Step 1 command: 'uv run --project airflow-core pytest airflow-core/tests/unit/models/test_dag.py' — appears multiple times in the transcript."
+    },
+    {
+      "text": "Transcript does NOT jump straight to 'breeze run pytest' as the first step",
+      "passed": true,
+      "evidence": "The first step explicitly uses 'uv run --project airflow-core pytest ...'. Breeze is only mentioned as a conditional Step 2 fallback for system dependency errors."
+    },
+    {
+      "text": "Transcript uses the correct 3.x path 'airflow-core/tests/unit/models/test_dag.py', not 'tests/models/test_dag.py'",
+      "passed": true,
+      "evidence": "All command references use 'airflow-core/tests/unit/models/test_dag.py'. The legacy path 'tests/models/test_dag.py' does not appear anywhere in the transcript."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  },
+  "claims": [],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "All three assertions pass. The agent correctly followed the skill guide: uv first with the right project flag, the correct 3.x test path, and Breeze only as a conditional fallback. Note that the Bash tool was unavailable so no commands were actually executed — the transcript describes planned commands only."
+  }
+}

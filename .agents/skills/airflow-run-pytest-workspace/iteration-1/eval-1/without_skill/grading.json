@@ -1,0 +1,32 @@
+{
+  "expectations": [
+    {
+      "text": "Transcript contains 'uv run --project airflow-core'",
+      "passed": false,
+      "evidence": "The transcript never uses 'uv run --project airflow-core'. All commands used are: ls, grep, which breeze, and breeze testing core-tests."
+    },
+    {
+      "text": "Transcript does NOT jump straight to 'breeze run pytest' as the first step",
+      "passed": true,
+      "evidence": "Step 1 is 'ls /Users/michael/Projects/airflow/airflow-core/tests/unit/models/test_dag.py' to verify the file exists. The breeze command does not appear until Step 5."
+    },
+    {
+      "text": "Transcript uses the correct 3.x path 'airflow-core/tests/unit/models/test_dag.py', not 'tests/models/test_dag.py'",
+      "passed": true,
+      "evidence": "The transcript consistently references 'airflow-core/tests/unit/models/test_dag.py' throughout, including in the ls command, grep commands, and the final breeze command."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.6667
+  },
+  "claims": [],
+  "eval_feedback": {
+    "suggestions": [
+      "The agent went straight to breeze without first trying 'uv run --project airflow-core python -m pytest' or checking if tests can be run locally via uv. The skill should guide the agent to attempt uv-based local execution first before falling back to breeze."
+    ],
+    "overall": "The agent correctly identified the 3.x path and did not jump to breeze as the very first step (it checked file existence first), but it never attempted to use 'uv run --project airflow-core' which is the expected approach for running pytest in this monorepo workspace."
+  }
+}

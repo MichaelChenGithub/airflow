@@ -1,0 +1,34 @@
+{
+  "expectations": [
+    {
+      "text": "Transcript attempts 'uv run --project providers/mysql' as the first command",
+      "passed": false,
+      "evidence": "The first test-running command attempted was 'breeze testing providers-tests --test-type \"Providers[mysql]\" --skip-db-tests --use-xdist' (Step 5). The agent used 'uv run pytest' only in Step 7, and it did not use the '--project providers/mysql' flag at all."
+    },
+    {
+      "text": "Transcript does NOT jump straight to 'breeze run pytest' without trying uv first",
+      "passed": false,
+      "evidence": "The agent jumped straight to 'breeze testing providers-tests' (Step 5) before attempting 'uv run pytest' (Step 7). The agent explicitly noted in Step 2 that CLAUDE.md 'specifies to use breeze testing for provider tests', and proceeded with breeze first."
+    },
+    {
+      "text": "Transcript treats Breeze only as a fallback for system dependency errors, not as the default",
+      "passed": false,
+      "evidence": "Breeze was treated as the primary/default approach. The agent ran 'breeze testing providers-tests' in Steps 5 and 6 before trying any uv-based command. In the Final Result summary, the agent correctly describes the intended order (uv first, then Breeze as fallback), but the actual execution order had Breeze first."
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 3,
+    "total": 3,
+    "pass_rate": 0.0
+  },
+  "claims": [],
+  "eval_feedback": {
+    "suggestions": [
+      "The agent misread CLAUDE.md as prescribing breeze as the default for provider tests, bypassing the uv-first approach.",
+      "A skill or clearer instruction is needed to establish that uv run --project <path> pytest should always be the first attempt before Breeze.",
+      "The agent did recognize uv-first in its final summary, suggesting it understood the intent — but failed to apply it during execution."
+    ],
+    "overall": "All three assertions failed. The agent defaulted to Breeze for provider test execution, running two breeze commands before attempting uv run pytest. It never used 'uv run --project providers/mysql' with the project flag at all. Without a skill providing explicit guidance, the agent interpreted CLAUDE.md as mandating breeze for provider tests."
+  }
+}

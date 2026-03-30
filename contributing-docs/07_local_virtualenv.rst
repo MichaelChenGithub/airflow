@@ -210,9 +210,13 @@ provider and providers it depends on and its development dependencies.
 Then running tests for the provider is as simple as activating the venv in the main repo and running pytest
 command - or alternatively running ``uv run`` in the provider directory.:
 
+.. SKILL-FRAGMENT-START:: airflow-run-pytest
+
 .. code:: bash
 
     uv run pytest
+
+.. SKILL-FRAGMENT-END
 
 Note that the ``uv sync`` command will automatically synchronize all dependencies needed for your provider
 and its development dependencies.
