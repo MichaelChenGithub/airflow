@@ -179,6 +179,131 @@ def test_generate_all_content_is_deterministic_when_glob_is_unsorted(tmp_path, m
     assert body.index("Fragment A.") < body.index("Fragment B.")
 
 
+def test_generate_all_content_rejects_duplicate_skill_def(tmp_path):
+    defs_path = tmp_path / ".agents" / "skill_definitions.rst"
+    _write(
+        defs_path,
+        """
+        .. SKILL-DEF:: airflow-run-pytest
+           description: >
+             Run pytest for Airflow tests.
+           compatibility: Requires uv installed on host.
+
+        .. SKILL-DEF:: airflow-run-pytest
+           description: >
+             Duplicate skill definition.
+           compatibility: Requires uv installed on host.
+        """,
+    )
+
+    with pytest.raises(ValueError, match="Duplicate SKILL-DEF"):
+        generate_skills.parse_skill_definitions(defs_path)
+
+
+def test_generate_all_content_rejects_nested_fragment_start(tmp_path):
+    defs_path = tmp_path / ".agents" / "skill_definitions.rst"
+    _write_skill_definitions(defs_path)
+    _write(
+        tmp_path / "nested.rst",
+        """
+        .. SKILL-FRAGMENT-START:: airflow-run-pytest
+        .. SKILL-FRAGMENT-START:: airflow-run-pytest
+        Nested start.
+        .. SKILL-FRAGMENT-END
+        .. SKILL-FRAGMENT-END
+        """,
+    )
+
+    with pytest.raises(ValueError, match="Nested SKILL-FRAGMENT-START"):
+        generate_skills.generate_all_content(str(tmp_path / "**" / "*.rst"), definitions_file=defs_path)
+
+
+def test_generate_all_content_rejects_empty_fragment_body(tmp_path):
+    defs_path = tmp_path / ".agents" / "skill_definitions.rst"
+    _write_skill_definitions(defs_path)
+    _write(
+        tmp_path / "empty_body.rst",
+        """
+        .. SKILL-FRAGMENT-START:: airflow-run-pytest
+        .. SKILL-FRAGMENT-END
+        """,
+    )
+
+    with pytest.raises(ValueError, match="Empty SKILL-FRAGMENT block"):
+        generate_skills.generate_all_content(str(tmp_path / "**" / "*.rst"), definitions_file=defs_path)
+
+
+def test_parse_skill_definitions_rejects_missing_description(tmp_path):
+    defs_path = tmp_path / ".agents" / "skill_definitions.rst"
+    _write(
+        defs_path,
+        """
+        .. SKILL-DEF:: airflow-run-pytest
+           compatibility: Requires uv installed on host.
+        """,
+    )
+
+    with pytest.raises(ValueError, match="missing 'description'"):
+        generate_skills.parse_skill_definitions(defs_path)
+
+
+def test_parse_skill_definitions_rejects_missing_file(tmp_path):
+    missing = tmp_path / "nonexistent.rst"
+
+    with pytest.raises(ValueError, match="Missing SKILL definitions file"):
+        generate_skills.parse_skill_definitions(missing)
+
+
+def test_generate_all_content_rejects_invalid_ref_id_format(tmp_path):
+    defs_path = tmp_path / ".agents" / "skill_definitions.rst"
+    _write_skill_definitions(defs_path)
+    _write(
+        tmp_path / "bad_ref.rst",
+        """
+        .. SKILL-FRAGMENT-START:: airflow-run-pytest ref=Bad_ID
+        Content here.
+        .. SKILL-FRAGMENT-END
+        """,
+    )
+
+    with pytest.raises(ValueError, match="Invalid ref id"):
+        generate_skills.generate_all_content(str(tmp_path / "**" / "*.rst"), definitions_file=defs_path)
+
+
+def test_main_returns_zero_on_success(monkeypatch, tmp_path):
+    defs_path = tmp_path / ".agents" / "skill_definitions.rst"
+    _write_skill_definitions(defs_path)
+    _write(
+        tmp_path / "fragment.rst",
+        """
+        .. SKILL-FRAGMENT-START:: airflow-run-pytest
+        Run with uv run pytest.
+        .. SKILL-FRAGMENT-END
+        """,
+    )
+
+    monkeypatch.setattr(generate_skills, "AIRFLOW_ROOT", tmp_path)
+    monkeypatch.setattr(generate_skills, "AGENTS_SKILLS_ROOT", tmp_path / ".agents" / "skills")
+    monkeypatch.setattr(generate_skills, "CONTRIBUTING_DOCS_ROOT", tmp_path)
+    monkeypatch.setattr(generate_skills, "SKILL_DEFINITIONS_FILE", defs_path)
+
+    assert generate_skills.main() == 0
+    assert (tmp_path / ".agents" / "skills" / "airflow-run-pytest" / "SKILL.md").exists()
+
+
+def test_main_returns_nonzero_on_error(monkeypatch, tmp_path):
+    defs_path = tmp_path / ".agents" / "skill_definitions.rst"
+    _write(defs_path, ".. SKILL-DEF:: airflow-run-pytest\n   description: Run tests.\n")
+    # No fragment files — skill has no body fragments
+
+    monkeypatch.setattr(generate_skills, "AIRFLOW_ROOT", tmp_path)
+    monkeypatch.setattr(generate_skills, "AGENTS_SKILLS_ROOT", tmp_path / ".agents" / "skills")
+    monkeypatch.setattr(generate_skills, "CONTRIBUTING_DOCS_ROOT", tmp_path)
+    monkeypatch.setattr(generate_skills, "SKILL_DEFINITIONS_FILE", defs_path)
+
+    assert generate_skills.main() != 0
+
+
 def test_airflow_run_pytest_skill_uses_source_document_commands():
     pattern = str(generate_skills.CONTRIBUTING_DOCS_ROOT / "**" / "*.rst")
 
